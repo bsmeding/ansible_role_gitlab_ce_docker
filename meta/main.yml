@@ -1,5 +1,5 @@
 galaxy_info:
-  role_name: gitlab
+  role_name: gitlab_docker
   author: Bart Smeding
   description: Manage and run the gitlab ce docker container with Postgres container as backend.
   license: MIT
@@ -17,7 +17,7 @@ galaxy_info:
     - buster
     - bullseye
   galaxy_tags:
-  - gitlab ce
+  - gitlab
   - docker
   dependencies: []
     # - docker
