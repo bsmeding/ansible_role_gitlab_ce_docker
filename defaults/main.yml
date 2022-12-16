@@ -63,15 +63,10 @@ gitlab__default_env:
   TZ: "{{ container_time_zone | default('Europe/Paris') }}"
   # PUID: "{{ docker_uid|default(1040) }}"
   # GUID: "{{ docker_gid|default(1001) }}"
-  GITLAB_OMNIBUS_CONFIG: |
-    "external_url '{{ gitlab__url }}'"
 gitlab__env: {}
 # gitlab__db_default_env:
 #   TZ: "{{ container_time_zone | default('Europe/Paris') }}"
 #   PUID: "{{ docker_uid|default(1040) }}"
 #   GUID: "{{ docker_gid|default(1001) }}"
-#   POSTGRES_USER: "{{ gitlab__postgres_user }}"
-#   POSTGRES_PASSWORD: "{{ gitlab__postgres_password }}"
-#   POSTGRES_DB: "{{ gitlab__db_name }}"
-# gitlab__db_user_env:
-#   POSTGRES_HOST_AUTH_METHOD: 'trust' # DO NOT USE IN PRODUCTION!!!
+#   GITLAB_OMNIBUS_CONFIG: |
+#     "external_url '{{ gitlab__url }}'"
