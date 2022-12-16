@@ -1,0 +1,89 @@
+external_url '{{ gitlab__url }}'
+
+gitlab_rails['lfs_enabled'] = true
+
+# Dont set internal Nginx config, we use seperate Nginx container
+#nginx['listen_port'] = 80
+#nginx['listen_https'] = false
+#nginx['proxy_set_headers'] = {
+#  "X-Forwarded-Proto" => "https",
+#  "X-Forwarded-Ssl" => "on"
+#}
+
+# Enable termination of ProxyProtocol by NGINX (used with HAProxy)
+# nginx['proxy_protocol'] = true
+# Configure trusted upstream proxies. Required if `proxy_protocol` is enabled.
+nginx['real_ip_trusted_addresses'] = {{ gitlab__proxy_real_ip_trusted_addresses | list }}
+
+# Set referrer polocy
+nginx['referrer_policy'] = 'strict-origin-when-cross-origin'
+
+# Docker registery
+{% if gitlab__registery_enable == true %}
+registry_external_url '{{ gitlab__registery_url }}:{{ gitlab__registery_port }}'
+registry_nginx['enable'] = true
+registry_nginx['listen_port'] = {{ gitlab__registery_port }}
+
+# registry_nginx['ssl_certificate'] = "{{ gitlab__registery_ssl_cert_path }}"
+# registry_nginx['ssl_certificate_key'] = "{{ gitlab__registery_ssl_cert_key_path }}"
+
+
+
+{% endif %}
+
+# LDAP CONFIG
+{% if gitlab__ldap_server_host_ip is defined and gitlab__ldap_server_host_port is defined %}
+# LDAP
+gitlab_rails['ldap_enabled'] = true
+gitlab_rails['prevent_ldap_sign_in'] = false
+
+##! **remember to close this block with 'EOS' below**
+gitlab_rails['ldap_servers'] = YAML.load <<-'EOS'
+  main: # 'main' is the GitLab 'provider ID' of this LDAP server
+    label: 'LDAP'
+    host: '{{ gitlab__ldap_server_host_ip }}'
+    port: {{ gitlab__ldap_server_host_port }}
+    uid: 'uid' # 'sAMAccountName'
+    bind_dn: '{{ gitlab__ldap_auth_bind_dn }}'
+    password: '{{ gitlab__ldap_auth_bind_pass }}'
+    encryption: 'plain' # "start_tls" or "simple_tls" or "plain"
+    verify_certificates: false
+    smartcard_auth: false
+    active_directory: false
+    allow_username_or_email_login: true
+    lowercase_usernames: false
+    block_auto_created_users: false
+    base: '{{ gitlab__ldap_search_users }}'
+{% if gitlab__ldap_user_filter %}
+    user_filter: '{{ gitlab__ldap_user_filter }}'
+{% endif %}
+    ## EE only
+    group_base: ''
+    admin_group: ''
+    sync_ssh_keys: false
+
+  # secondary: # 'secondary' is the GitLab 'provider ID' of second LDAP server
+  #   label: 'LDAP'
+  #   host: '_your_ldap_server'
+  #   port: 389
+  #   uid: 'sAMAccountName'
+  #   bind_dn: '_the_full_dn_of_the_user_you_will_bind_with'
+  #   password: '_the_password_of_the_bind_user'
+  #   encryption: 'plain' # "start_tls" or "simple_tls" or "plain"
+  #   verify_certificates: true
+  #   smartcard_auth: false
+  #   active_directory: true
+  #   allow_username_or_email_login: false
+  #   lowercase_usernames: false
+  #   block_auto_created_users: false
+  #   base: ''
+  #   user_filter: ''
+  #   ## EE only
+  #   group_base: ''
+  #   admin_group: ''
+  #   sync_ssh_keys: false
+
+EOS
+
+
+{% endif %}

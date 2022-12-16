@@ -1,0 +1,77 @@
+---
+- name: Remove existing {{ gitlab__name }} container
+  docker_container:
+    name: "{{ gitlab__name }}"
+    state: absent
+  when: gitlab__remove_existing_container
+
+- name: Remove home directory
+  file:
+    state: absent
+    path: "{{ gitlab__home }}"
+  when: gitlab__remove_existing_home_dir
+
+## Add users
+# - ansible.builtin.user:
+#     name: "{{ item }}"
+#     shell: /bin/false
+#     groups: docker
+#   with_items:
+#   - git
+#   - gitlab-www
+#   - gitlab-psql
+#   - gitlab-prometheus
+#   - gitlab-redis
+#   - registry
+#   - mattermost
+
+- name: Create directories
+  file:
+    state: directory
+    path: "{{ item.path }}"
+    mode: "{{ item.mode | default('0755') }}"
+    owner: "{{ item.owner | default(docker_uid) | default('root') }}" # First docker user (if docker role has run), otherwise default role, otherwise root
+    group: "{{ item.group | default(docker_gid) | default('root') }}"
+  with_items: "{{ gitlab__directories }}"
+
+- name: Create a network for gitlab
+  community.docker.docker_network:
+    name: "{{ gitlab__network }}"
+    ipam_config:
+      - subnet: "{{ gitlab__network_cidr }}"
+        gateway: "{{ gitlab__network_cidr | ansible.utils.ipaddr('next_usable') }}"
+        iprange: "{{ gitlab__network_cidr }}"
+
+
+- name: Check if ritlab.rb already exist
+  ansible.builtin.stat:
+    path: "{{ gitlab__home }}/config/gitlab.rb"
+  register: gitlab_rb_file
+
+- name: Set proxy request
+  ansible.builtin.set_fact:
+    gitlab__proxy_real_ip_trusted_addresses: "{{ gitlab__proxy_real_ip_trusted_addresses + ['127.0.0.1/8'] }}"
+
+- name: Copy gitlab.rb template
+  ansible.builtin.template:
+    src: gitlab.rb.j2
+    dest: "{{ gitlab__home }}/config/gitlab.rb"
+  notify: restart gitlab
+  when: not gitlab_rb_file.stat.exists
+
+- name: Run gitlab container
+  docker_container:
+    name: "{{ gitlab__name }}"
+    image: "{{ gitlab__image }}"
+    hostname: "{{ gitlab__hostname | default(omit) }}"
+    restart_policy: always
+    network_mode: "{{ gitlab__network_mode | default(omit)}}"
+    networks: "{{ gitlab__container_networks }}"
+    purge_networks: "{{ gitlab__purge_networks | default('no') }}"
+    ports: "{{ gitlab__ports }}"
+    # user: "{{ docker_uid|default('gitlab') }}:{{ docker_gid|default('gitlab') }}"
+    env: "{{ gitlab__default_env | combine(gitlab__env) }}"
+    volumes: "{{ gitlab__directory_volumes + gitlab__file_volumes }}"
+    log_driver: "{{ gitlab__log_driver }}"
+    log_options: "{{ gitlab__log_options }}"
+  notify: restart gitlab

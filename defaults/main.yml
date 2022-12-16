@@ -1,0 +1,77 @@
+---
+container_time_zone: 'Europe/Amsterdam'
+gitlab__name: gitlab
+gitlab__image: 'gitlab/gitlab-ce:latest'
+# gitlab__image: polinux/gitlab-ce:latest
+gitlab__hostname: git.infra.coa.local
+gitlab__url: "http://{{ gitlab__hostname }}" # "{{ ansible_host }}"
+gitlab__port_web_http: 9081
+gitlab__port_web_https: 9444
+gitlab__port_ssh: 2222
+gitlab__registery_enable: false
+gitlab__registery_url: ''
+gitlab__registery_port: 5000
+gitlab__registery_ssl_cert_path: ''
+gitlab__registery_ssl_cert_key_path: ''
+gitlab__ldap_server_host_ip: 172.16.111.10
+gitlab__ldap_server_host_port: 3890
+gitlab__ldap_search_users: "ou=people,dc=example,dc=com"
+# gitlab__ldap_search_groups: "ou=groups,dc=example,dc=com"
+gitlab__ldap_auth_bind_dn: "CN=readonly,OU=people,DC=example,DC=com"
+gitlab__ldap_auth_bind_pass: "readonly"
+gitlab__ldap_user_filter: (memberof=cn=gitlab,ou=groups,dc=example,dc=com)
+gitlab__remove_existing_container: no
+gitlab__remove_existing_home_dir: no  # ONLY FOR AUTOMATED TEST!! WILL REMOVE ALL DATA!!!!
+gitlab__pull_image: yes
+gitlab__file_volumes: []
+gitlab__network_mode: ''
+gitlab__network_cidr: '172.16.20.128/26'
+gitlab__proxy_real_ip_trusted_addresses:
+  - "{{ gitlab__network_cidr }}"
+gitlab__network: 'gitlab'
+gitlab__container_networks:
+  - name: bridge
+  - name: "{{ gitlab__network }}"
+gitlab__purge_networks: no
+gitlab__log_driver: json-file
+gitlab__log_options:
+gitlab__home: "/opt/{{ gitlab__name }}"
+# gitlab__use_local_directories_instead_of_volumes: true
+gitlab__directories:
+- path: "{{ gitlab__home }}"
+  mode: "0760"
+- path: "{{ gitlab__home }}/config"
+  mode: "0770"
+- path: "{{ gitlab__home }}/data"
+  mode: "0770"
+- path: "{{ gitlab__home }}/logs"
+  mode: "0770"
+gitlab__ports:
+- "{{ gitlab__port_web_http }}:80"
+- "{{ gitlab__port_web_https }}:443"
+- "{{ gitlab__port_ssh }}:22"
+# - "{{ gitlab__registery_port }}:{{ gitlab__registery_port }}"
+gitlab__directory_volumes:
+- "{{ gitlab__home }}/config:/etc/gitlab"
+- "{{ gitlab__home }}/logs:/var/log/gitlab"
+- "{{ gitlab__home }}/data:/var/opt/gitlab"
+# - "/etc/passwd:/etc/passwd:ro"
+# gitlab__db_directory_volumes:
+# - "{{ gitlab__home }}/db:/var/lib/postgresql/data"
+# - "/etc/passwd:/etc/passwd:ro"
+gitlab__default_env:
+  TZ: "{{ container_time_zone | default('Europe/Paris') }}"
+  # PUID: "{{ docker_uid|default(1040) }}"
+  # GUID: "{{ docker_gid|default(1001) }}"
+  GITLAB_OMNIBUS_CONFIG: |
+    "external_url '{{ gitlab__url }}'"
+gitlab__env: {}
+# gitlab__db_default_env:
+#   TZ: "{{ container_time_zone | default('Europe/Paris') }}"
+#   PUID: "{{ docker_uid|default(1040) }}"
+#   GUID: "{{ docker_gid|default(1001) }}"
+#   POSTGRES_USER: "{{ gitlab__postgres_user }}"
+#   POSTGRES_PASSWORD: "{{ gitlab__postgres_password }}"
+#   POSTGRES_DB: "{{ gitlab__db_name }}"
+# gitlab__db_user_env:
+#   POSTGRES_HOST_AUTH_METHOD: 'trust' # DO NOT USE IN PRODUCTION!!!
