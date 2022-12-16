@@ -50,7 +50,7 @@ gitlab__ports:
 - "{{ gitlab__port_web_http }}:80"
 - "{{ gitlab__port_web_https }}:443"
 - "{{ gitlab__port_ssh }}:22"
-# - "{{ gitlab__registery_port }}:{{ gitlab__registery_port }}"
+- "{{ gitlab__registery_port }}:{{ gitlab__registery_port }}"
 gitlab__directory_volumes:
 - "{{ gitlab__home }}/config:/etc/gitlab"
 - "{{ gitlab__home }}/logs:/var/log/gitlab"
