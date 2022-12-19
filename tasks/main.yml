@@ -59,6 +59,46 @@
   notify: restart gitlab
   when: not gitlab_rb_file.stat.exists
 
+- name: Copy SSL cert file
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/files/certs/{{ gitlab__ssl_cert_file }}"
+    dest: "{{ gitlab__home }}/config/{{ gitlab__ssl_cert_file }}"
+    mode: '0544'
+  when: gitlab__ssl_cert_file is defined and gitlab__ssl_cert_file|length>5
+
+- name: Copy SSL cert key file
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/files/certs/{{ gitlab__ssl_cert_key_file }}"
+    dest: "{{ gitlab__home }}/config/{{ gitlab__ssl_cert_key_file }}"
+    mode: '0544'
+  when: gitlab__ssl_cert_key_file is defined and gitlab__ssl_cert_key_file|length>5
+
+- name: Copy SSL cert file for registery
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/files/certs/{{ gitlab__registery_ssl_cert_file }}"
+    dest: "{{ gitlab__home }}/config/{{ gitlab__registery_ssl_cert_file }}"
+    mode: '0544'
+  when: gitlab__registery_ssl_cert_file is defined and gitlab__registery_ssl_cert_file|length>5
+
+- name: Copy SSL cert key file for registery
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/files/certs/{{ gitlab__registery_ssl_cert_key_file }}"
+    dest: "{{ gitlab__home }}/config/{{ gitlab__registery_ssl_cert_key_file }}"
+    mode: '0544'
+  when: gitlab__registery_ssl_cert_key_file is defined and gitlab__registery_ssl_cert_key_file|length>5
+
+- name: Check if trusted-certs folder and files exists
+  ansible.builtin.stat:
+    path: "{{ playbook_dir }}/files/certs/trusted-certs/"
+  register: trusted_certs_dir
+
+- name: Copy content over from trusted-certs
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/files/certs/trusted-certs/"
+    dest: "{{ gitlab__home }}/config/trusted-certs/"
+    mode: '0544'
+  when: trusted_certs_dir.stat.isdir is defined and trusted_certs_dir.stat.isdir
+  
 - name: Run gitlab container
   docker_container:
     name: "{{ gitlab__name }}"

@@ -3,12 +3,19 @@ external_url '{{ gitlab__url }}'
 gitlab_rails['lfs_enabled'] = true
 
 # Dont set internal Nginx config, we use seperate Nginx container
-#nginx['listen_port'] = 80
-#nginx['listen_https'] = false
-#nginx['proxy_set_headers'] = {
-#  "X-Forwarded-Proto" => "https",
-#  "X-Forwarded-Ssl" => "on"
-#}
+nginx['listen_port'] = {{ gitlab__port_web_http }}
+{% if gitlab__ssl_cert_file is defined and gitlab__ssl_cert_file|length>5 and gitlab__ssl_cert_key_file is defined and gitlab__ssl_cert_key_file|length>5 %}
+nginx['listen_https'] = true
+nginx['redirect_http_to_https'] = true
+nginx['proxy_set_headers'] = {
+  "X-Forwarded-Proto" => "https",
+  "X-Forwarded-Ssl" => "on"
+}
+nginx['ssl_certificate'] = "{{ gitlab__ssl_cert_file }}"
+nginx['ssl_certificate_key'] = "{{ gitlab__ssl_cert_key_file }}"
+{% else %}
+nginx['listen_https'] = false
+{% endif %}
 
 # Enable termination of ProxyProtocol by NGINX (used with HAProxy)
 # nginx['proxy_protocol'] = true
@@ -23,10 +30,12 @@ nginx['referrer_policy'] = 'strict-origin-when-cross-origin'
 registry_external_url '{{ gitlab__registery_url }}:{{ gitlab__registery_port }}'
 registry_nginx['enable'] = true
 registry_nginx['listen_port'] = {{ gitlab__registery_port }}
-
-# registry_nginx['ssl_certificate'] = "{{ gitlab__registery_ssl_cert_path }}"
-# registry_nginx['ssl_certificate_key'] = "{{ gitlab__registery_ssl_cert_key_path }}"
-
+{% if gitlab__registery_ssl_cert_path is defined and gitlab__registery_ssl_cert_path|length>5 %}
+registry_nginx['ssl_certificate'] = "{{ gitlab__registery_ssl_cert_path }}"
+{% endif %}
+{% if gitlab__registery_ssl_cert_key_path is defined and gitlab__registery_ssl_cert_key_path|length>5 %}
+registry_nginx['ssl_certificate_key'] = "{{ gitlab__registery_ssl_cert_key_path }}"
+{% endif %}
 
 
 {% endif %}
@@ -86,4 +95,8 @@ gitlab_rails['ldap_servers'] = YAML.load <<-'EOS'
 EOS
 
 
+{% endif %}
+
+{% if gitlab__gitlab_rb_user_config is defined %}
+{{ gitlab__gitlab_rb_user_config }}
 {% endif %}

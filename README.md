@@ -32,3 +32,17 @@ When enabling / setting the variables `gitlab__ldap_server_host_ip` and `gitlab_
 # Gitlab.rb
 Please not that by default when the gitlab.rb file is created, it will not be overwritten. So when doing manual changes it will not be reset by a following plyabook run.
 Only when changing variables that exists in the template, like LDAP etc, please be aware that updates/changes are not reflected
+
+## SSL
+To copy SSL certificates for Gitlab and/or for the docker registery service, place the cert files in `./files/certs/*` (if directory does not exist, create directory) and add the cert filenames to the playbook:
+
+```
+gitlab__ssl_cert_file: 'git.example.com.pub'
+gitlab__ssl_cert_key_file: 'git.example.com.key'
+# optional:
+gitlab__registery_ssl_cert_file: 'registery.example.com'
+gitlab__registery_ssl_cert_key_file: 'registery.example.key'
+```
+
+### SSL Trusted root certificates
+To add trusted certificates, place the certificate files in `./files/certs/trusted-certs/` to copy them over to the host

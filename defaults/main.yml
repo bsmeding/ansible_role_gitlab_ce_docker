@@ -5,14 +5,16 @@ gitlab__image: 'gitlab/gitlab-ce:latest'
 # gitlab__image: polinux/gitlab-ce:latest
 gitlab__hostname: git.infra.coa.local
 gitlab__url: "http://{{ gitlab__hostname }}" # "{{ ansible_host }}"
+gitlab__ssl_cert_file: ''
+gitlab__ssl_cert_key_file: ''
 gitlab__port_web_http: 9081
 gitlab__port_web_https: 9444
 gitlab__port_ssh: 2222
 gitlab__registery_enable: false
 gitlab__registery_url: ''
 gitlab__registery_port: 5000
-gitlab__registery_ssl_cert_path: ''
-gitlab__registery_ssl_cert_key_path: ''
+gitlab__registery_ssl_cert_file: ''
+gitlab__registery_ssl_cert_key_file: ''
 gitlab__ldap_server_host_ip: 172.16.111.10
 gitlab__ldap_server_host_port: 3890
 gitlab__ldap_search_users: "ou=people,dc=example,dc=com"
@@ -70,3 +72,5 @@ gitlab__env: {}
 #   GUID: "{{ docker_gid|default(1001) }}"
 #   GITLAB_OMNIBUS_CONFIG: |
 #     "external_url '{{ gitlab__url }}'"
+gitlab__gitlab_rb_user_config: |
+  nginx['redirect_http_to_https'] = true
