@@ -4,14 +4,14 @@ gitlab__name: gitlab
 gitlab__image: 'gitlab/gitlab-ce:latest'
 # gitlab__image: polinux/gitlab-ce:latest
 gitlab__hostname: git.infra.coa.local
-gitlab__url: "http://{{ gitlab__hostname }}" # "{{ ansible_host }}"
+# gitlab__url: "http://{{ gitlab__hostname }}" # "{{ ansible_host }}"
 gitlab__ssl_cert_file: ''
 gitlab__ssl_cert_key_file: ''
 gitlab__port_web_http: 9081
 gitlab__port_web_https: 9444
 gitlab__port_ssh: 2222
 gitlab__registery_enable: false
-gitlab__registery_url: ''
+gitlab__registery_hostname: ''
 gitlab__registery_port: 5000
 gitlab__registery_ssl_cert_file: ''
 gitlab__registery_ssl_cert_key_file: ''

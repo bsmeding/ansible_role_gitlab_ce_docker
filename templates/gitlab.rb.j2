@@ -1,4 +1,8 @@
-external_url '{{ gitlab__url }}'
+{% if gitlab__ssl_cert_file is defined and gitlab__ssl_cert_file|length>5 and gitlab__ssl_cert_key_file is defined and gitlab__ssl_cert_key_file|length>5 %}
+external_url 'https://{{ gitlab__hostname }}{% if gitlab__port_web_https != '443' %}:{{ gitlab__port_web_https }}{% endif %}'
+{% else %}
+external_url 'http://{{ gitlab__hostname }}{% if gitlab__port_web_http != '80' %}:{{ gitlab__port_web_http }}{% endif %}'
+{% endif %}
 
 gitlab_rails['lfs_enabled'] = true
 
@@ -27,14 +31,19 @@ nginx['referrer_policy'] = 'strict-origin-when-cross-origin'
 
 # Docker registery
 {% if gitlab__registery_enable == true %}
-registry_external_url '{{ gitlab__registery_url }}:{{ gitlab__registery_port }}'
+{% if gitlab__registery_ssl_cert_file is defined and gitlab__registery_ssl_cert_file|length>5 and gitlab__ssl_cert_key_file is defined and gitlab__ssl_cert_key_file|length>5 %}
+registry_external_url 'https://{{ gitlab__registery_hostname }}:{{ gitlab__registery_port }}'
+{% else %}
+registry_external_url 'http://{{ gitlab__registery_hostname }}:{{ gitlab__registery_port }}'
+{% endif %}
+
 registry_nginx['enable'] = true
 registry_nginx['listen_port'] = {{ gitlab__registery_port }}
 {% if gitlab__registery_ssl_cert_path is defined and gitlab__registery_ssl_cert_path|length>5 %}
-registry_nginx['ssl_certificate'] = "{{ gitlab__registery_ssl_cert_path }}"
+registry_nginx['ssl_certificate'] = "{{ gitlab__registery_ssl_cert_file }}"
 {% endif %}
 {% if gitlab__registery_ssl_cert_key_path is defined and gitlab__registery_ssl_cert_key_path|length>5 %}
-registry_nginx['ssl_certificate_key'] = "{{ gitlab__registery_ssl_cert_key_path }}"
+registry_nginx['ssl_certificate_key'] = "{{ gitlab__registery_ssl_cert_key_file }}"
 {% endif %}
 
 
