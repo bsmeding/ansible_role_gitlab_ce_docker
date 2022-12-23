@@ -1,10 +1,9 @@
 ---
 container_time_zone: 'Europe/Amsterdam'
+use_podman_on_rhel_instead_of_docker: true
 gitlab__name: gitlab
 gitlab__image: 'gitlab/gitlab-ce:latest'
-# gitlab__image: polinux/gitlab-ce:latest
 gitlab__hostname: git.infra.coa.local
-# gitlab__url: "http://{{ gitlab__hostname }}" # "{{ ansible_host }}"
 gitlab__ssl_cert_file: ''
 gitlab__ssl_cert_key_file: ''
 gitlab__port_web_http: 9081
@@ -15,12 +14,12 @@ gitlab__registery_hostname: ''
 gitlab__registery_port: 5000
 gitlab__registery_ssl_cert_file: ''
 gitlab__registery_ssl_cert_key_file: ''
-gitlab__ldap_server_host_ip: 172.16.111.10
-gitlab__ldap_server_host_port: 3890
+gitlab__ldap_server_host_ip: ''
+gitlab__ldap_server_host_port: 389
 gitlab__ldap_search_users: "ou=people,dc=example,dc=com"
 # gitlab__ldap_search_groups: "ou=groups,dc=example,dc=com"
 gitlab__ldap_auth_bind_dn: "CN=readonly,OU=people,DC=example,DC=com"
-gitlab__ldap_auth_bind_pass: "readonly"
+gitlab__ldap_auth_bind_pass: ''
 gitlab__ldap_user_filter: (memberof=cn=gitlab,ou=groups,dc=example,dc=com)
 gitlab__remove_existing_container: no
 gitlab__remove_existing_home_dir: no  # ONLY FOR AUTOMATED TEST!! WILL REMOVE ALL DATA!!!!
@@ -63,13 +62,8 @@ gitlab__directory_volumes:
 # - "/etc/passwd:/etc/passwd:ro"
 gitlab__default_env:
   TZ: "{{ container_time_zone | default('Europe/Paris') }}"
-  # PUID: "{{ docker_uid|default(1040) }}"
-  # GUID: "{{ docker_gid|default(1001) }}"
 gitlab__env: {}
 # gitlab__db_default_env:
-#   TZ: "{{ container_time_zone | default('Europe/Paris') }}"
-#   PUID: "{{ docker_uid|default(1040) }}"
-#   GUID: "{{ docker_gid|default(1001) }}"
 #   GITLAB_OMNIBUS_CONFIG: |
 #     "external_url '{{ gitlab__url }}'"
 gitlab__gitlab_rb_user_config: |

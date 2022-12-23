@@ -34,14 +34,25 @@
     group: "{{ item.group | default(docker_gid) | default('root') }}"
   with_items: "{{ gitlab__directories }}"
 
-- name: Create a network for gitlab
+- name: Create a network for gitlab | docker
   community.docker.docker_network:
     name: "{{ gitlab__network }}"
     ipam_config:
       - subnet: "{{ gitlab__network_cidr }}"
         gateway: "{{ gitlab__network_cidr | ansible.utils.ipaddr('next_usable') }}"
         iprange: "{{ gitlab__network_cidr }}"
+  when: ansible_os_family != "RedHat" or (ansible_os_family == "RedHat" and not use_podman_on_rhel_instead_of_docker)
 
+
+- name: Create a network for gitlab | podman
+  containers.podman.podman_network:
+    name: "{{ gitlab__network }}"
+    internal: true
+    ip_range: "{{ gitlab__network_cidr }}"
+    subnet: "{{ gitlab__network_cidr }}"
+    gateway: "{{ gitlab__network_cidr | ansible.utils.ipaddr('next_usable') }}"
+  become: true
+  when: ansible_os_family == "RedHat" and use_podman_on_rhel_instead_of_docker
 
 - name: Check if ritlab.rb already exist
   ansible.builtin.stat:
@@ -99,7 +110,7 @@
     mode: '0544'
   when: trusted_certs_dir.stat.isdir is defined and trusted_certs_dir.stat.isdir
   
-- name: Run gitlab container
+- name: Run gitlab container | docker
   docker_container:
     name: "{{ gitlab__name }}"
     image: "{{ gitlab__image }}"
@@ -115,3 +126,23 @@
     log_driver: "{{ gitlab__log_driver }}"
     log_options: "{{ gitlab__log_options }}"
   notify: restart gitlab
+  when: ansible_os_family != "RedHat" or (ansible_os_family == "RedHat" and not use_podman_on_rhel_instead_of_docker)
+
+- name: Run gitlab container | podman
+  containers.podman.podman_container:
+    name: "{{ gitlab__name }}"
+    image: "{{ gitlab__image }}"
+    hostname: "{{ gitlab__hostname | default(omit) }}"
+    restart_policy: always
+    network_mode: "{{ gitlab__network_mode | default(omit)}}"
+    networks: "{{ gitlab__container_networks }}"
+    purge_networks: "{{ gitlab__purge_networks | default('no') }}"
+    ports: "{{ gitlab__ports }}"
+    # user: "{{ docker_uid|default('gitlab') }}:{{ docker_gid|default('gitlab') }}"
+    env: "{{ gitlab__default_env | combine(gitlab__env) }}"
+    volumes: "{{ gitlab__directory_volumes + gitlab__file_volumes }}"
+    log_driver: "{{ gitlab__log_driver }}"
+    log_options: "{{ gitlab__log_options }}"
+  notify: restart gitlab
+  when: ansible_os_family == "RedHat" and use_podman_on_rhel_instead_of_docker
+
