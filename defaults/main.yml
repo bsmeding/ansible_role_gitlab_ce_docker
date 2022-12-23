@@ -1,6 +1,5 @@
 ---
 container_time_zone: 'Europe/Amsterdam'
-use_podman_on_rhel_instead_of_docker: true
 gitlab__name: gitlab
 gitlab__image: 'gitlab/gitlab-ce:latest'
 gitlab__hostname: git.infra.coa.local
