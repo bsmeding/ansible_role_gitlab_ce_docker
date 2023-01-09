@@ -18,6 +18,7 @@ gitlab__ldap_server_host_ip: ''
 gitlab__ldap_server_host_port: 389
 gitlab__ldap_server_encryption: plain # "start_tls" or "simple_tls" or "plain"
 gitlab__ldap_server_verify_certificates: false
+gitlab__ldap_uid: 'uid' # #'uid' # 'sAMAccountName'
 gitlab__ldap_search_base: "ou=people,dc=example,dc=com"
 # gitlab__ldap_search_groups: "ou=groups,dc=example,dc=com"
 gitlab__ldap_auth_bind_dn: "CN=readonly,OU=people,DC=example,DC=com"

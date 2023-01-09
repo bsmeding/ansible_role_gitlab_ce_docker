@@ -43,7 +43,7 @@
     src: gitlab.rb.j2
     dest: "{{ gitlab__home }}/config/gitlab.rb"
   notify: restart gitlab
-  when: gitlab_rb_file is undefined or (gitlab_rb_file is defined and not gitlab_rb_file.stat.exists)
+  when: not gitlab__allow_local_modification_gitlab_rb or (gitlab_rb_file.stat is defined and not gitlab_rb_file.stat.exists)
 
 - name: Copy SSL cert file
   ansible.builtin.copy:
