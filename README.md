@@ -29,6 +29,10 @@ When enabling / setting the variables `gitlab__ldap_server_host_ip` and `gitlab_
 * `gitlab__ldap_auth_bind_pass`: Password of the user
 * `gitlab__ldap_user_filter`: What group must the users be member of to allow access
 
+## Microsoft Active Directory
+If you have MS AD, then the variable `gitlab__ldap_is_ad` to true and set user_search (when used) with prefix: `(memberOf:1.2.840.113556.1.4.194:=CN=....` instead of `(memberOf=CN=.....)` 
+
+
 # Gitlab.rb
 Please not that by default when the gitlab.rb file is created, it will not be overwritten. So when doing manual changes it will not be reset by a following plyabook run.
 Only when changing variables that exists in the template, like LDAP etc, please be aware that updates/changes are not reflected

@@ -13,13 +13,21 @@ gitlab__registery_hostname: ''
 gitlab__registery_port: 5000
 gitlab__registery_ssl_cert_file: ''
 gitlab__registery_ssl_cert_key_file: ''
+gitlab__ldap_server_label: 'LDAP'
 gitlab__ldap_server_host_ip: ''
 gitlab__ldap_server_host_port: 389
-gitlab__ldap_search_users: "ou=people,dc=example,dc=com"
+gitlab__ldap_server_encryption: plain # "start_tls" or "simple_tls" or "plain"
+gitlab__ldap_server_verify_certificates: false
+gitlab__ldap_search_base: "ou=people,dc=example,dc=com"
 # gitlab__ldap_search_groups: "ou=groups,dc=example,dc=com"
 gitlab__ldap_auth_bind_dn: "CN=readonly,OU=people,DC=example,DC=com"
 gitlab__ldap_auth_bind_pass: ''
 gitlab__ldap_user_filter: (memberof=cn=gitlab,ou=groups,dc=example,dc=com)
+gitlab__ldap_is_ad: false
+gitlab__ldap_allow_username_or_email_login: true
+gitlab__ldap_lowercase_usernames: false
+gitlab__ldap_block_auto_created_users: true
+gitlab__allow_local_modification_gitlab_rb: false # When True, new changes will not be set to the file from this role.
 gitlab__remove_existing_container: no
 gitlab__remove_existing_home_dir: no  # ONLY FOR AUTOMATED TEST!! WILL REMOVE ALL DATA!!!!
 gitlab__pull_image: yes

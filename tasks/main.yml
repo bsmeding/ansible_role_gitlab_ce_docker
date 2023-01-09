@@ -11,20 +11,6 @@
     path: "{{ gitlab__home }}"
   when: gitlab__remove_existing_home_dir
 
-## Add users
-# - ansible.builtin.user:
-#     name: "{{ item }}"
-#     shell: /bin/false
-#     groups: docker
-#   with_items:
-#   - git
-#   - gitlab-www
-#   - gitlab-psql
-#   - gitlab-prometheus
-#   - gitlab-redis
-#   - registry
-#   - mattermost
-
 - name: Create directories
   file:
     state: directory
@@ -46,6 +32,7 @@
   ansible.builtin.stat:
     path: "{{ gitlab__home }}/config/gitlab.rb"
   register: gitlab_rb_file
+  when: not gitlab__allow_local_modification_gitlab_rb
 
 - name: Set proxy request
   ansible.builtin.set_fact:
