@@ -28,11 +28,11 @@
         gateway: "{{ gitlab__network_cidr | ansible.utils.ipaddr('next_usable') }}"
         iprange: "{{ gitlab__network_cidr }}"
 
-- name: Check if ritlab.rb already exist
+- name: Check if gitlab.rb already exist
   ansible.builtin.stat:
     path: "{{ gitlab__home }}/config/gitlab.rb"
   register: gitlab_rb_file
-  when: not gitlab__allow_local_modification_gitlab_rb
+  when: gitlab__allow_local_modification_gitlab_rb|bool
 
 - name: Set proxy request
   ansible.builtin.set_fact:
