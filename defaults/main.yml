@@ -5,6 +5,7 @@ gitlab__image: 'gitlab/gitlab-ce:latest'
 gitlab__hostname: git.example.com
 gitlab__ssl_cert_file: ''
 gitlab__ssl_cert_key_file: ''
+gitlab__ssl_cert_key_password: ''
 gitlab__port_web_http: 9081
 gitlab__port_web_https: 9444
 gitlab__port_ssh: 2222

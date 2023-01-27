@@ -48,16 +48,23 @@
 - name: Copy SSL cert file
   ansible.builtin.copy:
     src: "{{ playbook_dir }}/files/certs/{{ gitlab__ssl_cert_file }}"
-    dest: "{{ gitlab__home }}/config/{{ gitlab__ssl_cert_file }}"
+    dest: "{{ gitlab__home }}/config/ssl/{{ gitlab__hostname }}.crt"
     mode: '0544'
   when: gitlab__ssl_cert_file is defined and gitlab__ssl_cert_file|length>5
 
 - name: Copy SSL cert key file
   ansible.builtin.copy:
     src: "{{ playbook_dir }}/files/certs/{{ gitlab__ssl_cert_key_file }}"
-    dest: "{{ gitlab__home }}/config/{{ gitlab__ssl_cert_key_file }}"
+    dest: "{{ gitlab__home }}/config/ssl/{{ gitlab__hostname }}.key"
     mode: '0544'
   when: gitlab__ssl_cert_key_file is defined and gitlab__ssl_cert_key_file|length>5
+
+- name: Copy SSL cert key password file
+  ansible.builtin.template:
+    src: "cert_key_password.j2"
+    dest: "{{ gitlab__home }}/config/ssl/key_file_password.txt"
+    mode: '0544'
+  when: gitlab__ssl_cert_key_password is defined and gitlab__ssl_cert_key_password|length>5
 
 - name: Copy SSL cert file for registery
   ansible.builtin.copy:

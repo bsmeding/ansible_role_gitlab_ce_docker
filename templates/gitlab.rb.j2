@@ -1,13 +1,14 @@
 {% if gitlab__ssl_cert_file is defined and gitlab__ssl_cert_file|length>5 and gitlab__ssl_cert_key_file is defined and gitlab__ssl_cert_key_file|length>5 %}
-external_url 'https://{{ gitlab__hostname }}{% if gitlab__port_web_https != '443' %}:{{ gitlab__port_web_https }}{% endif %}'
+external_url 'https://{{ gitlab__hostname }}:{{ gitlab__port_web_https }}'
+letsencrypt['enable'] = false
 {% else %}
-external_url 'http://{{ gitlab__hostname }}{% if gitlab__port_web_http != '80' %}:{{ gitlab__port_web_http }}{% endif %}'
+external_url 'http://{{ gitlab__hostname }}:{{ gitlab__port_web_http }}'
 {% endif %}
 
 gitlab_rails['lfs_enabled'] = true
 
 # Dont set internal Nginx config, we use seperate Nginx container
-nginx['listen_port'] = {{ gitlab__port_web_http }}
+# nginx['listen_port'] = {{ gitlab__port_web_http }}
 {% if gitlab__ssl_cert_file is defined and gitlab__ssl_cert_file|length>5 and gitlab__ssl_cert_key_file is defined and gitlab__ssl_cert_key_file|length>5 %}
 nginx['listen_https'] = true
 nginx['redirect_http_to_https'] = true
@@ -15,8 +16,12 @@ nginx['proxy_set_headers'] = {
   "X-Forwarded-Proto" => "https",
   "X-Forwarded-Ssl" => "on"
 }
-nginx['ssl_certificate'] = "{{ gitlab__ssl_cert_file }}"
-nginx['ssl_certificate_key'] = "{{ gitlab__ssl_cert_key_file }}"
+# Uncomment because cert file are copied alread as github_url name
+# nginx['ssl_certificate'] = "/etc/gitlab/ssl/{{ gitlab__ssl_cert_file }}"
+# nginx['ssl_certificate_key'] = "/etc/gitlab/ssl/{{ gitlab__ssl_cert_key_file }}"
+{% if gitlab__ssl_cert_key_password is defined and gitlab__ssl_cert_key_password|length>5 %}
+nginx['ssl_password_file'] = '/etc/gitlab/ssl/key_file_password.txt'
+{% endif %}
 {% else %}
 nginx['listen_https'] = false
 {% endif %}
