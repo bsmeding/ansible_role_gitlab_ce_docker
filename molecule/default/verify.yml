@@ -1,0 +1,28 @@
+---
+- name: Verify - Nautobot is running
+  hosts: all
+  become: false
+  tasks:
+    - name: Include default vars
+      ansible.builtin.include_vars:
+        dir: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}/defaults/"
+        extensions:
+          - "yml"
+
+    - name: Waits for database migrations (can take up to 5 minutes)
+      ansible.builtin.wait_for:
+        host: localhost
+        port: "{{ gitlab__port_web_http }}"
+        delay: 180
+
+    - name: Check if Nautobot login page is running
+      ansible.builtin.uri:
+        url: "http://localhost:{{ gitlab__port_web_http }}"
+        return_content: true
+      register: local_webserver_output
+      failed_when: local_webserver_output is failed or local_webserver_output.status != 200
+      # or "'Welcome to our server' not in local_webserver_output.content"
+
+    - name: Show output
+      ansible.builtin.debug:
+        var: local_webserver_output
