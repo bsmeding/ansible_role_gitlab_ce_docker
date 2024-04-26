@@ -45,6 +45,8 @@ gitlab__container_networks:
 gitlab__purge_networks: no
 gitlab__log_driver: json-file
 gitlab__log_options:
+  max-size: 10M
+  max-file: 5
 gitlab__home: "/opt/{{ gitlab__name }}"
 # gitlab__use_local_directories_instead_of_volumes: true
 gitlab__directories:
