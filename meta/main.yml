@@ -6,18 +6,16 @@ galaxy_info:
   company: b@rtsmeding.nl
   min_ansible_version: '2.11'
   platforms:
-  - name: Ubuntu
-    versions:
-    - bionic
-    - focal
-    - jammy
-  - name: Debian
-    versions:
-    - stretch
-    - buster
-    - bullseye
+    - name: Ubuntu
+      versions:
+        - bionic
+        - focal
+        - jammy
+    - name: Debian
+      versions:
+        - stretch
+        - buster
+        - bullseye
   galaxy_tags:
-  - gitlab
-  - docker
-  dependencies: []
-    # - docker
+    - gitlab
+    - docker

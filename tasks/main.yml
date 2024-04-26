@@ -91,7 +91,7 @@
     dest: "{{ gitlab__home }}/config/trusted-certs/"
     mode: '0544'
   when: trusted_certs_dir.stat.isdir is defined and trusted_certs_dir.stat.isdir
-  
+
 - name: Run gitlab container
   docker_container:
     name: "{{ gitlab__name }}"
