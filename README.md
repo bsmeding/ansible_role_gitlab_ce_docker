@@ -1,5 +1,5 @@
 # GitLab CE
-
+This role will install Gitlab CE on docker host
 
 # Root password
 If not set via  ENV `GITLAB_ROOT_PASSWORD` or via `gitlab_rails['initial_root_password']` setting in `gitlab.rb`:
@@ -10,7 +10,6 @@ To retreive:
 * login to the host
 * login to container: `docker exec -it gitlab /bin/bash`
 * execute command: `cat /etc/gitlab/initial_root_password`
-
 
 # todo :
 test without auto user generation (create users ad OS and map /etc/passwd file to container)
@@ -50,3 +49,39 @@ gitlab__registery_ssl_cert_key_file: 'registery.example.key'
 
 ### SSL Trusted root certificates
 To add trusted certificates, place the certificate files in `./files/certs/trusted-certs/` to copy them over to the host
+
+
+# Example playbook
+
+The following playbook will install Gitlab CE on a host
+
+first install the required roles:
+
+- `ansible-galaxy role install bsmeding.docker`
+- `ansible-galaxy role install bsmeding.gitlab_docker`
+
+Then run the playbook, after executing wait 5 - 10 minutes on first build that is needed for Gitlab rails to start.
+Change hostname and password to your needs:
+
+
+```
+---
+- name: Install gitlab
+  hosts: [gitlab_hosts]
+  gather_facts: true
+  become: true
+  vars:
+    gitlab__hostname: git.bartsmeding.nl
+    gitlab__env:
+      GITLAB_ROOT_PASSWORD: 'pleasechangeme'
+  tasks:
+    # Install Docker
+    - name: Check if docker is installed
+      ansible.builtin.include_role:
+        name: bsmeding.docker
+
+    # Install Gitlab CE
+    - name: Check if gitlab is installed
+      ansible.builtin.include_role:
+        name: bsmeding.gitlab_docker
+```
