@@ -1,7 +1,8 @@
 ---
-- name: Converge Nautobot 2.x
+- name: Converge
   hosts: all
   become: true
+
   pre_tasks:
     - name: Update apt cache
       ansible.builtin.apt:
@@ -10,9 +11,6 @@
       when: ansible_os_family == 'Debian'
 
     - name: Wait for systemd to complete initialization
-      # ansible.builtin.systemd:
-      #   name: systemd-analyze
-      #   state: started
       ansible.builtin.command: systemctl is-system-running
       register: systemctl_status
       until: >
