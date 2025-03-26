@@ -5,6 +5,6 @@
   tasks:
     - name: Install required packages
       apt:
-        name: [ "curl", "gnupg2", "ca-certificates", "lsb-release", "software-properties-common" ]
+        name: ["curl", "gnupg2", "ca-certificates", "lsb-release", "software-properties-common"]
         state: present
         update_cache: yes
