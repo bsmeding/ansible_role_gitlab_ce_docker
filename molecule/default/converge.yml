@@ -8,3 +8,4 @@
     gitlab__env:
       GITLAB_ROOT_PASSWORD: "molecule-test"
     gitlab__hostname: "gitlab.local"
+    
