@@ -20,3 +20,6 @@ provisioner:
   playbooks:
     converge: ${MOLECULE_PLAYBOOK:-converge.yml}
     verify: ${MOLECULE_PLAYBOOK_VERIFY:-verify.yml}
+  config_options:
+    defaults:
+      remote_tmp: /tmp
