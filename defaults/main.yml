@@ -34,7 +34,7 @@ gitlab__remove_existing_container: false
 gitlab__remove_existing_home_dir: false  # ONLY FOR AUTOMATED TEST!! WILL REMOVE ALL DATA!!!!
 gitlab__pull_image: true
 gitlab__file_volumes: []
-gitlab__network_mode: ""
+# gitlab__network_mode: "host"          # If set, the container_networks and ports are ingnored and the host will get mapped port 22,80,443 and registry port directly connected
 gitlab__network_cidr: '172.16.20.128/26'
 gitlab__proxy_real_ip_trusted_addresses:
   - "{{ gitlab__network_cidr }}"
