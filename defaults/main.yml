@@ -42,7 +42,6 @@ gitlab__network: 'gitlab'
 gitlab__container_networks:
   - name: bridge
   - name: "{{ gitlab__network }}"
-gitlab__purge_networks: false
 gitlab__log_driver: json-file
 gitlab__log_options:
   max-size: 10M
