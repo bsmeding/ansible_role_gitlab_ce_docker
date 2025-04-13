@@ -100,7 +100,6 @@
     restart_policy: always
     network_mode: "{{ gitlab__network_mode | default(omit)}}"
     networks: "{{ gitlab__container_networks }}"
-    purge_networks: "{{ gitlab__purge_networks | default('no') }}"
     ports: "{{ gitlab__ports }}"
     # user: "{{ docker_uid|default('gitlab') }}:{{ docker_gid|default('gitlab') }}"
     env: "{{ gitlab__default_env | combine(gitlab__env) }}"
