@@ -20,7 +20,7 @@
     group: "{{ item.group | default(docker_gid) | default('root') }}"
   with_items: "{{ gitlab__directories }}"
 
-- name: Create a network for gitlab
+- name: Create a network for Gitlab
   community.docker.docker_network:
     name: "{{ gitlab__network }}"
     ipam_config:
