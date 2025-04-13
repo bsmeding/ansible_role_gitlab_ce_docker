@@ -1,0 +1,21 @@
+galaxy_info:
+  role_name: gitlab_docker
+  author: Bart Smeding
+  description: Manage and run the gitlab ce docker container with Postgres container as backend.
+  license: MIT
+  company: b@rtsmeding.nl
+  min_ansible_version: '2.11'
+  platforms:
+    - name: Ubuntu
+      versions:
+        - bionic
+        - focal
+        - jammy
+    - name: Debian
+      versions:
+        - stretch
+        - buster
+        - bullseye
+  galaxy_tags:
+    - gitlab
+    - docker

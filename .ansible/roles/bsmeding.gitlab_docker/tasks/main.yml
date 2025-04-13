@@ -1,18 +1,18 @@
 ---
-- name: "Remove existing container {{ gitlab__name }}"
-  community.docker.docker_container:
+- name: Remove existing {{ gitlab__name }} container
+  docker_container:
     name: "{{ gitlab__name }}"
     state: absent
   when: gitlab__remove_existing_container
 
 - name: Remove home directory
-  ansible.builtin.file:
+  file:
     state: absent
     path: "{{ gitlab__home }}"
   when: gitlab__remove_existing_home_dir
 
 - name: Create directories
-  ansible.builtin.file:
+  file:
     state: directory
     path: "{{ item.path }}"
     mode: "{{ item.mode | default('0755') }}"
@@ -42,7 +42,6 @@
   ansible.builtin.template:
     src: gitlab.rb.j2
     dest: "{{ gitlab__home }}/config/gitlab.rb"
-    mode: "0660"
   notify: restart gitlab
   when: not gitlab__allow_local_modification_gitlab_rb or (gitlab_rb_file.stat is defined and not gitlab_rb_file.stat.exists)
 
@@ -94,7 +93,7 @@
   when: trusted_certs_dir.stat.isdir is defined and trusted_certs_dir.stat.isdir
 
 - name: Run GitLab container in host mode
-  community.docker.docker_container:
+  docker_container:
     name: "{{ gitlab__name }}"
     image: "{{ gitlab__image }}"
     hostname: "{{ gitlab__hostname | default(omit) }}"
@@ -102,19 +101,19 @@
     network_mode: host
     env: >-
       {{
-        (gitlab__default_env | to_nice_yaml | from_yaml)
-        | combine(gitlab__env | default({}))
-        | dictsort
+        (gitlab__default_env | to_nice_yaml | from_yaml) 
+        | combine(gitlab__env | default({})) 
+        | dictsort 
         | items2dict
       }}
     volumes: "{{ (gitlab__directory_volumes + gitlab__file_volumes) | sort }}"
     log_driver: "{{ gitlab__log_driver }}"
     log_options: "{{ gitlab__log_options }}"
   when: gitlab__network_mode == 'host'
-  notify: Restart gitlab
+  notify: restart gitlab
 
 - name: Run GitLab container in bridged mode
-  community.docker.docker_container:
+  docker_container:
     name: "{{ gitlab__name }}"
     image: "{{ gitlab__image }}"
     hostname: "{{ gitlab__hostname | default(omit) }}"
@@ -123,13 +122,13 @@
     ports: "{{ gitlab__ports }}"
     env: >-
       {{
-        (gitlab__default_env | to_nice_yaml | from_yaml)
-        | combine(gitlab__env | default({}))
-        | dictsort
+        (gitlab__default_env | to_nice_yaml | from_yaml) 
+        | combine(gitlab__env | default({})) 
+        | dictsort 
         | items2dict
       }}
     volumes: "{{ (gitlab__directory_volumes + gitlab__file_volumes) | sort }}"
     log_driver: "{{ gitlab__log_driver }}"
     log_options: "{{ gitlab__log_options }}"
   when: gitlab__network_mode != 'host'
-  notify: Restart gitlab
+  notify: restart gitlab
