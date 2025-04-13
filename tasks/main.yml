@@ -92,18 +92,31 @@
     mode: '0544'
   when: trusted_certs_dir.stat.isdir is defined and trusted_certs_dir.stat.isdir
 
-- name: Run gitlab container
+- name: Run GitLab container in host mode
   docker_container:
     name: "{{ gitlab__name }}"
     image: "{{ gitlab__image }}"
     hostname: "{{ gitlab__hostname | default(omit) }}"
     restart_policy: always
-    network_mode: "{{ gitlab__network_mode | default(omit)}}"
-    networks: "{{ gitlab__container_networks }}"
-    ports: "{{ gitlab__ports }}"
-    # user: "{{ docker_uid|default('gitlab') }}:{{ docker_gid|default('gitlab') }}"
-    env: "{{ gitlab__default_env | combine(gitlab__env) }}"
-    volumes: "{{ gitlab__directory_volumes + gitlab__file_volumes }}"
+    network_mode: host
+    env: "{{ (gitlab__default_env | combine(gitlab__env)) | dictsort }}"
+    volumes: "{{ (gitlab__directory_volumes + gitlab__file_volumes) | sort }}"
     log_driver: "{{ gitlab__log_driver }}"
     log_options: "{{ gitlab__log_options }}"
+  when: gitlab__network_mode == 'host'
+  notify: restart gitlab
+
+- name: Run GitLab container in bridged mode
+  docker_container:
+    name: "{{ gitlab__name }}"
+    image: "{{ gitlab__image }}"
+    hostname: "{{ gitlab__hostname | default(omit) }}"
+    restart_policy: always
+    networks: "{{ gitlab__container_networks }}"
+    ports: "{{ gitlab__ports }}"
+    env: "{{ (gitlab__default_env | combine(gitlab__env)) | dictsort }}"
+    volumes: "{{ (gitlab__directory_volumes + gitlab__file_volumes) | sort }}"
+    log_driver: "{{ gitlab__log_driver }}"
+    log_options: "{{ gitlab__log_options }}"
+  when: gitlab__network_mode != 'host'
   notify: restart gitlab
