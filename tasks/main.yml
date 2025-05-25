@@ -131,5 +131,5 @@
     volumes: "{{ (gitlab__directory_volumes + gitlab__file_volumes) | sort }}"
     log_driver: "{{ gitlab__log_driver }}"
     log_options: "{{ gitlab__log_options }}"
-  when: gitlab__network_mode undefined or (gitlab__network_mode is defined and gitlab__network_mode != 'host')
+  when: "gitlab__network_mode undefined or gitlab__network_mode == ''"
   notify: Restart gitlab
