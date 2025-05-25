@@ -100,13 +100,7 @@
     hostname: "{{ gitlab__hostname | default(omit) }}"
     restart_policy: always
     network_mode: host
-    env: >-
-      {{
-        (gitlab__default_env | to_nice_yaml | from_yaml)
-        | combine(gitlab__env | default({}))
-        | dictsort
-        | items2dict
-      }}
+    env: "{{ gitlab__default_env | combine(gitlab__env) }}"
     volumes: "{{ (gitlab__directory_volumes + gitlab__file_volumes) | sort }}"
     log_driver: "{{ gitlab__log_driver }}"
     log_options: "{{ gitlab__log_options }}"
@@ -121,13 +115,7 @@
     restart_policy: always
     networks: "{{ gitlab__container_networks }}"
     ports: "{{ gitlab__ports }}"
-    env: >-
-      {{
-        (gitlab__default_env | to_nice_yaml | from_yaml)
-        | combine(gitlab__env | default({}))
-        | dictsort
-        | items2dict
-      }}
+    env: "{{ gitlab__default_env | combine(gitlab__env) }}"
     volumes: "{{ (gitlab__directory_volumes + gitlab__file_volumes) | sort }}"
     log_driver: "{{ gitlab__log_driver }}"
     log_options: "{{ gitlab__log_options }}"
