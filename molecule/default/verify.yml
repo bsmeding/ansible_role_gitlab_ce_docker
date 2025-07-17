@@ -3,6 +3,12 @@
   hosts: all
   become: false
   tasks:
+    - name: Show listening ports
+      shell: ss -tuln
+      register: port_info
+    - debug:
+        var: port_info.stdout_lines
+        
     - name: Include default vars
       ansible.builtin.include_vars:
         dir: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}/defaults/"
