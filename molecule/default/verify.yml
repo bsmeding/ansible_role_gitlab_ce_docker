@@ -3,33 +3,28 @@
   hosts: all
   become: false
   tasks:
-    - name: Show listening ports
-      shell: ss -tuln
-      register: port_info
-    - debug:
-        var: port_info.stdout_lines
-        
-    - name: Include default vars
-      ansible.builtin.include_vars:
-        dir: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}/defaults/"
-        extensions:
-          - "yml"
+    - name: Get GitLab container IP
+      command: docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' gitlab
+      register: gitlab_ip
+      changed_when: false
 
-    - name: Wait for GitLab web interface to become reachable
-      ansible.builtin.wait_for:
-        port: "{{ gitlab__port_web_http }}"
-        host: "localhost"
-        delay: 10         # initial wait
-        timeout: 300
-        state: started
+    - name: Debug container IP
+      debug:
+        var: gitlab_ip.stdout
 
-    - name: Check that the default page is running
-      ansible.builtin.uri:
-        url: "http://localhost:{{ gitlab__port_web_http }}"
+    - name: Wait for GitLab port 80 to respond
+      wait_for:
+        host: "{{ gitlab_ip.stdout }}"
+        port: 80
+        timeout: 60
+
+    - name: Test HTTP endpoint
+      uri:
+        url: "http://{{ gitlab_ip.stdout }}"
+        status_code: 200
         return_content: true
-      register: local_webserver_output
-      failed_when: local_webserver_output is failed or local_webserver_output.status != 200
+      register: result
 
-    - name: Show output
-      ansible.builtin.debug:
-        var: local_webserver_output
+    - name: Debug result
+      debug:
+        var: result
