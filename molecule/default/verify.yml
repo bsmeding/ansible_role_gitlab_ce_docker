@@ -4,7 +4,8 @@
   become: false
   tasks:
     - name: Get GitLab container IP
-      command: docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' gitlab
+      command: >
+        docker inspect -f '{% raw %}{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}{% endraw %}' gitlab
       register: gitlab_ip
       changed_when: false
 
