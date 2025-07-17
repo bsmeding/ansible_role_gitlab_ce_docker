@@ -13,12 +13,12 @@
         port: "{{ gitlab__port_web_http }}"
         timeout: 600
 
-    - name: Wait until GitLab returns 200 OK
+    - name: Wait until GitLab healthcheck returns 200 OK
       ansible.builtin.uri:
-        url: "http://127.0.0.1:{{ gitlab__port_web_http }}"
+        url: "http://127.0.0.1:{{ gitlab__port_web_http }}/-/health"
         return_content: true
       register: web_check
-      retries: 30         # Up to 10 minutes (30 × 20s)
+      retries: 30
       delay: 20
       until: web_check.status == 200
       failed_when: web_check is failed or web_check.status != 200
