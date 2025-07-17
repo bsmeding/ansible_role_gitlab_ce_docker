@@ -8,28 +8,23 @@
         dir: "{{ lookup('env','MOLECULE_PROJECT_DIRECTORY') }}/defaults"
         extensions: ["yml"]
 
-    - name: Wait for GitLab container to boot (TCP port open)
-      wait_for:
-        port: 80
-        host: >-
-          {{ lookup('pipe', "docker inspect -f '{{ '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' }}' " ~ gitlab__name) }}
-        timeout: 300
-      register: wait_result
-      ignore_errors: true  # So the next debug step works if it fails
-
-    - name: Get GitLab container IP
+    - name: Get GitLab container IP (one per line)
       shell: |
-        docker inspect -f '{{ "{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" }}' {{ gitlab__name }}
+        docker inspect -f '{% raw %}{{range .NetworkSettings.Networks}}{{.IPAddress}}{{"\n"}}{{end}}{% endraw %}' {{ gitlab__name }}
       register: gitlab_ip
       changed_when: false
 
-    - name: Use first IP in case of multiple
+    - name: Set first IP from list
       set_fact:
         gitlab_main_ip: "{{ gitlab_ip.stdout_lines[0] }}"
 
-    - name: Show GitLab container IP
-      debug:
-        var: gitlab_main_ip
+    - name: Wait for GitLab container to boot (TCP port open)
+      wait_for:
+        port: 80
+        host: "{{ gitlab_main_ip}}"
+        timeout: 300
+      register: wait_result
+      ignore_errors: true  # So the next debug step works if it fails        
 
     - name: Wait until GitLab returns 200 OK
       uri:
