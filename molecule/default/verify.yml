@@ -16,6 +16,14 @@
         timeout: 300      # Allow 5 minutes max for TCP port to open
         state: started
 
+    - name: Show recent GitLab container logs
+      shell: docker logs --tail 50 gitlab
+      register: gitlab_logs
+      changed_when: false
+
+    - debug:
+        var: gitlab_logs.stdout_lines
+
     - name: Wait until GitLab returns 200 OK
       ansible.builtin.uri:
         url: "http://localhost:{{ gitlab__port_web_http }}"
@@ -25,6 +33,15 @@
       delay: 20
       until: web_check.status == 200
       failed_when: web_check is failed or web_check.status != 200
+      ignore_errors: true  # Ignore so we can show docker logs
+
+    - name: Show recent GitLab container logs
+      shell: docker logs --tail 50 gitlab
+      register: gitlab_logs
+      changed_when: false
+
+    - debug:
+        var: gitlab_logs.stdout_lines
 
     - name: Show result of HTTP check
       debug:
