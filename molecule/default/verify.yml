@@ -21,7 +21,7 @@
         url: "http://localhost:{{ gitlab__port_web_http }}"
         return_content: true
       register: web_check
-      retries: 15         # 15 x 20s = 5 minutes max
+      retries: 30         # 30 x 20s = 10 minutes max
       delay: 20
       until: web_check.status == 200
       failed_when: web_check is failed or web_check.status != 200
