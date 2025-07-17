@@ -1,35 +1,31 @@
 ---
-- name: Verify - Nginx is running
+- name: Verify - GitLab HTTP is running
   hosts: all
   become: false
   tasks:
-    - name: Get GitLab container IP
-      command: >
-        docker inspect -f '{% raw %}{{range .NetworkSettings.Networks}}{{.IPAddress}}{{"\n"}}{{end}}{% endraw %}' gitlab
-      register: gitlab_ip
-      changed_when: false
+    - name: Include default vars
+      ansible.builtin.include_vars:
+        dir: "{{ lookup('env','MOLECULE_PROJECT_DIRECTORY') }}/defaults"
+        extensions: ["yml"]
 
-    - name: Set first IP address
-      set_fact:
-        gitlab_main_ip: "{{ gitlab_ip.stdout_lines[0] }}"
-        
-    - name: Debug container IP
-      debug:
-        var: gitlab_main_ip
+    - name: Wait for GitLab HTTP port to be reachable
+      ansible.builtin.wait_for:
+        host: "localhost"
+        port: "{{ gitlab__port_web_http }}"
+        delay: 10         # Initial delay after container start
+        timeout: 300      # Allow 5 minutes max for TCP port to open
+        state: started
 
-    - name: Wait for GitLab port 80 to respond
-      wait_for:
-        host: "{{ gitlab_main_ip }}"
-        port: 80
-        timeout: 60
-
-    - name: Test HTTP endpoint
-      uri:
-        url: "http://{{ gitlab_main_ip }}"
-        status_code: 200
+    - name: Wait until GitLab returns 200 OK
+      ansible.builtin.uri:
+        url: "http://localhost:{{ gitlab__port_web_http }}"
         return_content: true
-      register: result
+      register: web_check
+      retries: 15         # 15 x 20s = 5 minutes max
+      delay: 20
+      until: web_check.status == 200
+      failed_when: web_check is failed or web_check.status != 200
 
-    - name: Debug result
+    - name: Show result of HTTP check
       debug:
-        var: result
+        var: web_check
