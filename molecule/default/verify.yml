@@ -9,14 +9,21 @@
         extensions:
           - "yml"
 
-    - name: Check that if default page is running
+    - name: Wait for GitLab web interface to become reachable
+      ansible.builtin.wait_for:
+        port: "{{ gitlab__port_web_http }}"
+        host: "localhost"
+        delay: 10         # initial wait
+        timeout: 300
+        state: started
+
+    - name: Check that the default page is running
       ansible.builtin.uri:
-        url: "http://localhost:{{ gitlab__port_web_http  }}"
+        url: "http://localhost:{{ gitlab__port_web_http }}"
         return_content: true
       register: local_webserver_output
       failed_when: local_webserver_output is failed or local_webserver_output.status != 200
-      # or "'Welcome to our server' not in local_webserver_output.content"
 
     - name: Show output
-      debug:
+      ansible.builtin.debug:
         var: local_webserver_output
