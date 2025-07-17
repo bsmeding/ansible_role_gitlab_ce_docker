@@ -8,41 +8,38 @@
         dir: "{{ lookup('env','MOLECULE_PROJECT_DIRECTORY') }}/defaults"
         extensions: ["yml"]
 
-    - name: Wait for GitLab HTTP port to be reachable
-      ansible.builtin.wait_for:
-        host: "{{ gitlab__name }}"
-        port: "{{ gitlab__port_web_http }}"
-        delay: 10         # Initial delay after container start
-        timeout: 300      # Allow 5 minutes max for TCP port to open
-        state: started
+    - name: Wait for GitLab container to boot (TCP port open)
+      wait_for:
+        port: 80
+        host: >-
+          {{ lookup('pipe', "docker inspect -f '{{ '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' }}' " ~ gitlab__name) }}
+        timeout: 300
+      register: wait_result
+      ignore_errors: true  # So the next debug step works if it fails
 
-    - name: Show recent GitLab container logs
-      shell: docker logs --tail 50 gitlab
-      register: gitlab_logs
+    - name: Get GitLab container IP
+      shell: docker inspect -f '{{"{{"}}range .NetworkSettings.Networks{{"{{"}}.IPAddress{{"{{"}}end{{"}}"}}' {{ gitlab__name }}
+      register: gitlab_ip
       changed_when: false
 
-    - debug:
-        var: gitlab_logs.stdout_lines
+    - name: Use first IP in case of multiple
+      set_fact:
+        gitlab_main_ip: "{{ gitlab_ip.stdout_lines[0] }}"
+
+    - name: Show GitLab container IP
+      debug:
+        var: gitlab_main_ip
 
     - name: Wait until GitLab returns 200 OK
-      ansible.builtin.uri:
-        url: "http://{{ gitlab__name }}:{{ gitlab__port_web_http }}"
+      uri:
+        url: "http://{{ gitlab_main_ip }}"
         return_content: true
       register: web_check
-      retries: 30         # 30 x 20s = 10 minutes max
+      retries: 30
       delay: 20
       until: web_check.status == 200
       failed_when: web_check is failed or web_check.status != 200
-      ignore_errors: true  # Ignore so we can show docker logs
 
-    - name: Show recent GitLab container logs
-      shell: docker logs --tail 50 gitlab
-      register: gitlab_logs
-      changed_when: false
-
-    - debug:
-        var: gitlab_logs.stdout_lines
-
-    - name: Show result of HTTP check
+    - name: Show HTTP check result
       debug:
         var: web_check
