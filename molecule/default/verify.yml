@@ -10,7 +10,7 @@
 
     - name: Wait for GitLab HTTP port to be reachable
       ansible.builtin.wait_for:
-        host: "localhost"
+        host: "{{ gitlab__name }}"
         port: "{{ gitlab__port_web_http }}"
         delay: 10         # Initial delay after container start
         timeout: 300      # Allow 5 minutes max for TCP port to open
@@ -26,7 +26,7 @@
 
     - name: Wait until GitLab returns 200 OK
       ansible.builtin.uri:
-        url: "http://127.0.0.1:{{ gitlab__port_web_http }}"
+        url: "http://{{ gitlab__name }}:{{ gitlab__port_web_http }}"
         return_content: true
       register: web_check
       retries: 30         # 30 x 20s = 10 minutes max
