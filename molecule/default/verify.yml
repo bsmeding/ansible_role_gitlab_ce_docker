@@ -5,23 +5,27 @@
   tasks:
     - name: Get GitLab container IP
       command: >
-        docker inspect -f '{% raw %}{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}{% endraw %}' gitlab
+        docker inspect -f '{% raw %}{{range .NetworkSettings.Networks}}{{.IPAddress}}{{"\n"}}{{end}}{% endraw %}' gitlab
       register: gitlab_ip
       changed_when: false
 
+    - name: Set first IP address
+      set_fact:
+        gitlab_main_ip: "{{ gitlab_ip.stdout_lines[0] }}"
+        
     - name: Debug container IP
       debug:
-        var: gitlab_ip.stdout
+        var: gitlab_main_ip
 
     - name: Wait for GitLab port 80 to respond
       wait_for:
-        host: "{{ gitlab_ip.stdout }}"
+        host: "{{ gitlab_main_ip }}"
         port: 80
         timeout: 60
 
     - name: Test HTTP endpoint
       uri:
-        url: "http://{{ gitlab_ip.stdout }}"
+        url: "http://{{ gitlab_main_ip }}"
         status_code: 200
         return_content: true
       register: result
