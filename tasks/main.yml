@@ -104,6 +104,7 @@
     volumes: "{{ (gitlab__directory_volumes + gitlab__file_volumes) | sort }}"
     log_driver: "{{ gitlab__log_driver }}"
     log_options: "{{ gitlab__log_options }}"
+    shm_size: 256M
   when: "gitlab__network_mode is defined and gitlab__network_mode == 'host'"
   notify: Restart gitlab
 
@@ -119,5 +120,6 @@
     volumes: "{{ (gitlab__directory_volumes + gitlab__file_volumes) | sort }}"
     log_driver: "{{ gitlab__log_driver }}"
     log_options: "{{ gitlab__log_options }}"
+    shm_size: 256M
   when: "gitlab__network_mode is undefined or gitlab__network_mode == ''"
   notify: Restart gitlab
