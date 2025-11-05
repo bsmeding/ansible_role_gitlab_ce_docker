@@ -6,6 +6,7 @@ dependency:
     ignore-errors: true
     ignore-certs: true
     role-file: requirements.yml
+    roles-path: .cache/molecule/default/dependencies/roles
 driver:
   name: docker
 platforms:
@@ -51,4 +52,4 @@ provisioner:
     verify: ${MOLECULE_PLAYBOOK_VERIFY:-verify.yml}
   config_options:
     defaults:
-      roles_path: "../../../:.cache/molecule/default/dependencies/roles"
+      roles_path: "../../../:../../.cache/molecule/default/dependencies/roles"
