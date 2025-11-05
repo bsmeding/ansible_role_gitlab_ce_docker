@@ -37,6 +37,4 @@
       when: docker_socket.stat.exists and docker_socket.stat.exists
 
   roles:
-    - role: bsmeding.docker
-      when: docker_socket.stat.exists and docker_socket.stat.exists
     - role: bsmeding.gitlab_docker
