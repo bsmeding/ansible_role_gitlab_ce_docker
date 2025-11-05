@@ -51,4 +51,4 @@ provisioner:
     verify: ${MOLECULE_PLAYBOOK_VERIFY:-verify.yml}
   config_options:
     defaults:
-      roles_path: "../../../"
+      roles_path: "../../../:.cache/molecule/default/dependencies/roles"
