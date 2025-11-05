@@ -52,3 +52,5 @@ provisioner:
   config_options:
     defaults:
       roles_path: "../../../:~/.ansible/.cache/molecule/default/dependencies/roles"
+  env:
+    ANSIBLE_ROLES_PATH: "../../../:~/.ansible/.cache/molecule/default/dependencies/roles"
