@@ -3,6 +3,7 @@
   community.docker.docker_container:
     name: "{{ gitlab__name }}"
     restart: true
+  when: gitlab__container_state == 'started'
 
 # - name: reconfigure gitlab
 #   community.docker.docker_container_exec:

@@ -98,12 +98,14 @@
     name: "{{ gitlab__name }}"
     image: "{{ gitlab__image }}"
     hostname: "{{ gitlab__hostname | default(omit) }}"
+    state: "{{ gitlab__container_state }}"
     restart_policy: always
     network_mode: host
     env: "{{ gitlab__default_env | combine(gitlab__env) }}"
     volumes: "{{ (gitlab__directory_volumes + gitlab__file_volumes) | sort }}"
     log_driver: "{{ gitlab__log_driver }}"
     log_options: "{{ gitlab__log_options }}"
+    shm_size: 256M
   when: "gitlab__network_mode is defined and gitlab__network_mode == 'host'"
   notify: Restart gitlab
 
@@ -112,6 +114,7 @@
     name: "{{ gitlab__name }}"
     image: "{{ gitlab__image }}"
     hostname: "{{ gitlab__hostname | default(omit) }}"
+    state: "{{ gitlab__container_state }}"
     restart_policy: always
     networks: "{{ gitlab__container_networks }}"
     ports: "{{ gitlab__ports }}"
@@ -119,5 +122,6 @@
     volumes: "{{ (gitlab__directory_volumes + gitlab__file_volumes) | sort }}"
     log_driver: "{{ gitlab__log_driver }}"
     log_options: "{{ gitlab__log_options }}"
+    shm_size: 256M
   when: "gitlab__network_mode is undefined or gitlab__network_mode == ''"
   notify: Restart gitlab
