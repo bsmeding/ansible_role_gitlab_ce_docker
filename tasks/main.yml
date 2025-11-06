@@ -11,14 +11,23 @@
     path: "{{ gitlab__home }}"
   when: gitlab__remove_existing_home_dir
 
-- name: Create directories
+- name: Check if directories exist
+  ansible.builtin.stat:
+    path: "{{ item.path }}"
+  with_items: "{{ gitlab__directories }}"
+  register: gitlab_dir_check
+  changed_when: false
+
+- name: Create directories (only if they don't exist)
   ansible.builtin.file:
     state: directory
-    path: "{{ item.path }}"
-    mode: "{{ item.mode | default('0755') }}"
-    owner: "{{ item.owner | default(docker_uid) | default('root') }}" # First docker user (if docker role has run), otherwise default role, otherwise root
-    group: "{{ item.group | default(docker_gid) | default('root') }}"
-  with_items: "{{ gitlab__directories }}"
+    path: "{{ item.1.path }}"
+    mode: "{{ item.1.mode | default('0755') }}"
+    owner: "{{ item.1.owner | default(docker_uid) | default('root') }}" # First docker user (if docker role has run), otherwise default role, otherwise root
+    group: "{{ item.1.group | default(docker_gid) | default('root') }}"
+  loop: "{{ gitlab_dir_check.results | zip(gitlab__directories) | list }}"
+  when: not item.0.stat.exists
+  register: gitlab_dir_create
 
 - name: Create a network for Gitlab
   community.docker.docker_network:
@@ -135,3 +144,5 @@
     group: "{{ item.group | default(docker_gid) | default('root') }}"
   with_items: "{{ gitlab__directories }}"
   when: gitlab__container_state == 'started'
+  register: gitlab_dir_fix
+  changed_when: false
