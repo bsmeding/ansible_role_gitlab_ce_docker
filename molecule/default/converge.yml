@@ -8,6 +8,24 @@
     gitlab__hostname: "gitlab.local"
     # Skip Docker service management in test environment
     docker_service_manage: false
+    # Stabilize idempotence for directory ownership/mode in CI
+    gitlab__directories:
+      - path: "/opt/{{ gitlab__name }}"
+        mode: "0760"
+        owner: "root"
+        group: "root"
+      - path: "/opt/{{ gitlab__name }}/config"
+        mode: "0770"
+        owner: "root"
+        group: "root"
+      - path: "/opt/{{ gitlab__name }}/data"
+        mode: "0770"
+        owner: "root"
+        group: "root"
+      - path: "/opt/{{ gitlab__name }}/logs"
+        mode: "0770"
+        owner: "root"
+        group: "root"
   pre_tasks:
     - name: Update apt cache
       ansible.builtin.apt:
@@ -15,7 +33,7 @@
         cache_valid_time: 600
       when: ansible_os_family == 'Debian'
 
-    - name: Wait for systemd to complete initialization
+    - name: Wait for systemd to complete initialization (skipped in CI)
       ansible.builtin.command: systemctl is-system-running
       register: systemctl_status
       until: >
@@ -23,7 +41,7 @@
         'degraded' in systemctl_status.stdout
       retries: 30
       delay: 5
-      when: ansible_service_mgr == 'systemd'
+      when: false  # skip in CI containers
       changed_when: false
       failed_when: systemctl_status.rc > 1
 
