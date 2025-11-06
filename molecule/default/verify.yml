@@ -8,16 +8,38 @@
         dir: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}/defaults/"
         extensions: ["yml"]
 
+    - name: Check if GitLab container is running
+      community.docker.docker_container_info:
+        name: "{{ gitlab__name }}"
+      register: gitlab_container
+      retries: 60
+      delay: 10
+      until: gitlab_container.exists and gitlab_container.container.State.Running
+      failed_when: false
+
     - name: Wait for GitLab mapped port on host to become reachable
       wait_for:
         host: "127.0.0.1"
         port: "8080"
         timeout: 600
+        delay: 10
+
+    - name: Wait for GitLab to respond (basic connectivity)
+      ansible.builtin.uri:
+        url: "http://127.0.0.1:8080"
+        status_code: [200, 302, 401, 403]
+        return_content: false
+      register: web_check_basic
+      retries: 60
+      delay: 10
+      until: web_check_basic.status in [200, 302, 401, 403]
+      failed_when: false
 
     - name: Wait until GitLab healthcheck returns 200 OK
       ansible.builtin.uri:
         url: "http://127.0.0.1:8080/-/health"
         return_content: true
+        status_code: [200]
       register: web_check
       retries: 30
       delay: 20
