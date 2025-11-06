@@ -6,6 +6,8 @@
     gitlab__env:
       GITLAB_ROOT_PASSWORD: "molecule-test"
     gitlab__hostname: "gitlab.local"
+    # Skip Docker service management in test environment
+    docker_service_manage: false
   pre_tasks:
     - name: Update apt cache
       ansible.builtin.apt:
