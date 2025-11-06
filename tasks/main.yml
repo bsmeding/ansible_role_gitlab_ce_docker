@@ -125,3 +125,13 @@
     shm_size: 256M
   when: "gitlab__network_mode is undefined or gitlab__network_mode == ''"
   notify: Restart gitlab
+
+- name: Ensure directory permissions after container creation
+  ansible.builtin.file:
+    state: directory
+    path: "{{ item.path }}"
+    mode: "{{ item.mode | default('0755') }}"
+    owner: "{{ item.owner | default(docker_uid) | default('root') }}"
+    group: "{{ item.group | default(docker_gid) | default('root') }}"
+  with_items: "{{ gitlab__directories }}"
+  when: gitlab__container_state == 'started'
