@@ -11,12 +11,12 @@
     - name: Wait for GitLab mapped port on host to become reachable
       wait_for:
         host: "127.0.0.1"
-        port: "{{ gitlab__port_web_http }}"
+        port: "8080"
         timeout: 600
 
     - name: Wait until GitLab healthcheck returns 200 OK
       ansible.builtin.uri:
-        url: "http://127.0.0.1:{{ gitlab__port_web_http }}/-/health"
+        url: "http://127.0.0.1:8080/-/health"
         return_content: true
       register: web_check
       retries: 30
