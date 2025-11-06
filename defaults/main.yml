@@ -56,7 +56,7 @@ gitlab__home: "/opt/{{ gitlab__name }}"
 gitlab__directories:
   - path: "{{ gitlab__home }}"
     mode: "0760"
-  - path: "{{ gitlab__home }}/config"
+  - path: "{{ gitlab__home }}/config/ssl"
     mode: "0770"
   - path: "{{ gitlab__home }}/data"
     mode: "0770"
