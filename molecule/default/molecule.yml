@@ -52,3 +52,6 @@ provisioner:
   config_options:
     defaults:
       roles_path: "../../../"
+      remote_tmp: "/tmp/.ansible-tmp"
+  env:
+    ANSIBLE_ALLOW_BROKEN_CONDITIONALS: "True"

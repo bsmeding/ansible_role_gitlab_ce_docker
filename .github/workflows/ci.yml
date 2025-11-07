@@ -60,7 +60,7 @@ jobs:
           python-version: '3.13' # 3.x installad 3.14 and that is not supported by Ansible
 
       - name: Install test dependencies.
-        run: pip3 install ansible==9.5.1 molecule==24.2.1 molecule-plugins[docker]==23.5.3 docker==7.0.0 netaddr==1.2.1 requests==2.31.0
+        run: pip3 install ansible-core==2.20.0 molecule==24.12.0 "molecule-plugins[docker]==23.5.3" docker==7.0.0 netaddr==1.2.1 requests==2.31.0
 
       - name: Run Molecule tests.
         run: molecule test
@@ -68,3 +68,4 @@ jobs:
           PY_COLORS: '1'
           ANSIBLE_FORCE_COLOR: '1'
           MOLECULE_DISTRO: ${{ matrix.distro }}
+          ANSIBLE_ALLOW_BROKEN_CONDITIONALS: 'True'

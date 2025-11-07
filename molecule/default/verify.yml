@@ -2,6 +2,8 @@
 - name: Verify - GitLab HTTP is running
   hosts: all
   become: false
+  vars:
+    ansible_python_interpreter: auto_silent
   tasks:
     - name: Include default vars
       ansible.builtin.include_vars:
@@ -16,6 +18,7 @@
       delay: 10
       until: gitlab_container.exists and gitlab_container.container.State.Running
       failed_when: false
+      # Max wait: 10 minutes (60 × 10s), but completes as soon as container is running
 
     - name: Wait for GitLab mapped port on host to become reachable
       wait_for:
@@ -23,6 +26,7 @@
         port: "8080"
         timeout: 600
         delay: 10
+      # Max wait: 10 minutes, but completes as soon as port is open
 
     - name: Wait for GitLab to respond (basic connectivity)
       ansible.builtin.uri:
@@ -34,6 +38,7 @@
       delay: 10
       until: web_check_basic.status in [200, 302, 401, 403]
       failed_when: false
+      # Max wait: 10 minutes (60 × 10s), but completes as soon as GitLab responds
 
     - name: Wait until GitLab healthcheck returns 200 OK
       ansible.builtin.uri:
@@ -41,10 +46,12 @@
         return_content: true
         status_code: [200]
       register: web_check
-      retries: 30
-      delay: 20
+      retries: 50
+      delay: 15
       until: web_check.status == 200
       failed_when: web_check is failed or web_check.status != 200
+      # Max wait: 12.5 minutes (50 × 15s), but completes as soon as healthcheck passes
+      # Typical: 6-7 minutes on powerful machines, 8-10 minutes on CI
 
     - name: Debug response content
       debug:

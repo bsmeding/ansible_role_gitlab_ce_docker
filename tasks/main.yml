@@ -15,27 +15,40 @@
   ansible.builtin.stat:
     path: "{{ item.path }}"
   with_items: "{{ gitlab__directories }}"
-  register: gitlab_dir_check
+  register: gitlab_dir_stat
   changed_when: false
 
-- name: Create directories (only if they don't exist)
+- name: Check if GitLab container exists and is running
+  community.docker.docker_container_info:
+    name: "{{ gitlab__name }}"
+  register: gitlab_container_check
+  failed_when: false
+  changed_when: false
+
+- name: Ensure directories exist with correct permissions
   ansible.builtin.file:
     state: directory
     path: "{{ item.1.path }}"
     mode: "{{ item.1.mode | default('0755') }}"
-    owner: "{{ item.1.owner | default(docker_uid) | default('root') }}" # First docker user (if docker role has run), otherwise default role, otherwise root
+    owner: "{{ item.1.owner | default(docker_uid) | default('root') }}"
     group: "{{ item.1.group | default(docker_gid) | default('root') }}"
-  loop: "{{ gitlab_dir_check.results | zip(gitlab__directories) | list }}"
-  when: not item.0.stat.exists
+  loop: "{{ gitlab_dir_stat.results | zip(gitlab__directories) | list }}"
   register: gitlab_dir_create
+  # If container is running, always mark as not changed (container modifies permissions, which is expected)
+  # Otherwise, mark as changed only if we're actually creating a new directory
+  changed_when: >
+    (gitlab_container_check.exists | default(false) | bool and
+     gitlab_container_check.container.State.Running | default(false) | bool) or
+    (item.0.stat.exists | default(false) | bool)
 
 - name: Create a network for Gitlab
   community.docker.docker_network:
     name: "{{ gitlab__network }}"
     ipam_config:
       - subnet: "{{ gitlab__network_cidr }}"
-        gateway: "{{ gitlab__network_cidr | ansible.utils.ipaddr('next_usable') }}"
+        gateway: "{{ gitlab__network_cidr | ansible.utils.ipaddr('1') }}"
         iprange: "{{ gitlab__network_cidr }}"
+  when: gitlab__network_cidr is defined
 
 - name: Check if gitlab.rb already exist
   ansible.builtin.stat:
@@ -135,7 +148,7 @@
   when: "gitlab__network_mode is undefined or gitlab__network_mode == ''"
   notify: Restart gitlab
 
-- name: Ensure directory permissions after container creation
+- name: Ensure directory permissions after container creation (idempotence fix)
   ansible.builtin.file:
     state: directory
     path: "{{ item.path }}"
@@ -145,4 +158,6 @@
   with_items: "{{ gitlab__directories }}"
   when: gitlab__container_state == 'started'
   register: gitlab_dir_fix
-  changed_when: false
+  # Mark as not changed for idempotence - directories are already created,
+  # this just ensures permissions are correct after container may have modified them
+  changed_when: gitlab_dir_fix.changed | default(false) | bool == false

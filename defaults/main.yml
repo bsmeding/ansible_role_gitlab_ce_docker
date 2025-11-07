@@ -43,6 +43,9 @@ gitlab__network: 'gitlab'
 gitlab__container_networks:
   - name: bridge
   - name: "{{ gitlab__network }}"
+# GitLab writes logs to files in /var/log/gitlab (mounted to {{ gitlab__home }}/logs)
+# docker logs will be mostly empty as GitLab doesn't write to stdout/stderr
+# To view logs, check: {{ gitlab__home }}/logs/ (e.g., /opt/gitlab/logs/gitlab-rails/production.log)
 gitlab__log_driver: json-file
 gitlab__log_options:
   max-size: '10M'
