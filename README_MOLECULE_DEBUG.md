@@ -2,6 +2,9 @@
 
 When running Molecule tests, you need to access the GitLab container from **inside** the Molecule instance container (Docker-in-Docker setup).
 
+# Pinning requirements
+Need to pin requirement community.docker belwo version 5
+
 ## Quick Access to Instance Container
 
 ```bash
