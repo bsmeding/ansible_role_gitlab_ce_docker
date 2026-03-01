@@ -2,6 +2,8 @@
 - name: Converge GitLab CE Docker
   hosts: all
   become: true
+  collections:
+    - ansible.utils
   vars:
     gitlab__env:
       GITLAB_ROOT_PASSWORD: "molecule-test"

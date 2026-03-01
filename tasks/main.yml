@@ -46,9 +46,9 @@
     name: "{{ gitlab__network }}"
     ipam_config:
       - subnet: "{{ gitlab__network_cidr }}"
-        gateway: "{{ gitlab__network_cidr | ansible.utils.ipaddr('1') }}"
+        gateway: "{{ gitlab__network_cidr | ansible.utils.ipaddr('next_usable') }}"
         iprange: "{{ gitlab__network_cidr }}"
-  when: gitlab__network_cidr is defined
+  when: gitlab__network_cidr is defined and gitlab__network_cidr != ''
 
 - name: Check if gitlab.rb already exist
   ansible.builtin.stat:

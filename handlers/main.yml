@@ -1,9 +1,12 @@
 ---
 - name: Restart gitlab
-  community.docker.docker_container:
-    name: "{{ gitlab__name }}"
-    restart: true
+  ansible.builtin.command:
+    cmd: docker restart "{{ gitlab__name }}"
   when: gitlab__container_state == 'started'
+  ignore_errors: true
+  register: gitlab_restart_result
+  failed_when: false
+  changed_when: gitlab_restart_result.rc == 0
 
 # - name: reconfigure gitlab
 #   community.docker.docker_container_exec:

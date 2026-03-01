@@ -60,7 +60,7 @@ registry_nginx['ssl_certificate_key'] = "{{ gitlab__registery_ssl_cert_key_file 
 {% endif %}
 
 # LDAP Config
-{% if gitlab__ldap_server_host_ip | length < 1 %}
+{% if gitlab__ldap_server_host_ip | length < 3 %}
 {# No LDAP server host IP set, zero length (default) #}
 gitlab_rails['ldap_enabled'] = false
 {% else %}
