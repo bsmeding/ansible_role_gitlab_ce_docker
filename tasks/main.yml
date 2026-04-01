@@ -34,12 +34,12 @@
     group: "{{ item.1.group | default(docker_gid) | default('root') }}"
   loop: "{{ gitlab_dir_stat.results | zip(gitlab__directories) | list }}"
   register: gitlab_dir_create
-  # If container is running, always mark as not changed (container modifies permissions, which is expected)
-  # Otherwise, mark as changed only if we're actually creating a new directory
+  # If container is running, never mark changed (GitLab may alter permissions on the bind mounts).
+  # Otherwise report changed only when the directory did not exist yet (newly created).
   changed_when: >
-    (gitlab_container_check.exists | default(false) | bool and
-     gitlab_container_check.container.State.Running | default(false) | bool) or
-    (item.0.stat.exists | default(false) | bool)
+    (not (gitlab_container_check.exists | default(false) | bool and
+          gitlab_container_check.container.State.Running | default(false) | bool)) and
+    (not (item.0.stat.exists | default(false) | bool))
 
 - name: Create a network for Gitlab
   community.docker.docker_network:
@@ -157,6 +157,5 @@
   with_items: "{{ gitlab__directories }}"
   when: gitlab__container_state == 'started'
   register: gitlab_dir_fix
-  # Mark as not changed for idempotence - directories are already created,
-  # this just ensures permissions are correct after container may have modified them
-  changed_when: gitlab_dir_fix.changed | default(false) | bool == false
+  # Best-effort permission alignment after the container starts; must not break idempotence.
+  changed_when: false
