@@ -10,6 +10,13 @@
         dir: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}/defaults/"
         extensions: ["yml"]
 
+    # include_vars loads role defaults (e.g. gitlab__port_web_http 9081); converge uses 8080.
+    # GitLab binds published ports on the Docker host (mounted socket), not on instance loopback.
+    - name: Set Molecule verify endpoint (must match converge gitlab__port_web_http)
+      ansible.builtin.set_fact:
+        gitlab_molecule_verify_host: host.docker.internal
+        gitlab_molecule_http_port: 8080
+
     - name: Check if GitLab container is running
       community.docker.docker_container_info:
         name: "{{ gitlab__name }}"
@@ -22,15 +29,15 @@
 
     - name: Wait for GitLab mapped port on host to become reachable
       wait_for:
-        host: "127.0.0.1"
-        port: "8080"
+        host: "{{ gitlab_molecule_verify_host }}"
+        port: "{{ gitlab_molecule_http_port }}"
         timeout: 600
         delay: 10
       # Max wait: 10 minutes, but completes as soon as port is open
 
     - name: Wait for GitLab to respond (basic connectivity)
       ansible.builtin.uri:
-        url: "http://127.0.0.1:8080"
+        url: "http://{{ gitlab_molecule_verify_host }}:{{ gitlab_molecule_http_port }}"
         status_code: [200, 302, 401, 403]
         return_content: false
       register: web_check_basic
@@ -42,7 +49,7 @@
 
     - name: Wait until GitLab healthcheck returns 200 OK
       ansible.builtin.uri:
-        url: "http://127.0.0.1:8080/-/health"
+        url: "http://{{ gitlab_molecule_verify_host }}:{{ gitlab_molecule_http_port }}/-/health"
         return_content: true
         status_code: [200]
       register: web_check
