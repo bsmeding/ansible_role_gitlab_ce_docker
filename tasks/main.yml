@@ -46,7 +46,6 @@
     name: "{{ gitlab__network }}"
     ipam_config:
       - subnet: "{{ gitlab__network_cidr }}"
-        gateway: "{{ gitlab__network_cidr | ansible.utils.ipaddr('next_usable') }}"
         iprange: "{{ gitlab__network_cidr }}"
   when: gitlab__network_cidr is defined and gitlab__network_cidr != ''
 
