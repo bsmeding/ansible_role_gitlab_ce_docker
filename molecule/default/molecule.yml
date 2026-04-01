@@ -18,8 +18,9 @@ platforms:
     cgroupns_mode: host
     privileged: true
     pre_build_image: true
-    published_ports:
-      - "8080:80"
+    # Do not publish host ports here: converge runs GitLab on the same Docker host
+    # (docker.sock) and maps e.g. 8080:80; an extra 8080:80 on the instance would
+    # conflict with that bind.
     environment:
       DOCKER_HOST: unix:///var/run/docker.sock
     capabilities:
