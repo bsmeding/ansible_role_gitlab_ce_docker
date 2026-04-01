@@ -13,9 +13,11 @@
     # include_vars loads role defaults (e.g. gitlab__port_web_http 9081); converge uses 8080.
     # Published ports bind on the Docker daemon host (runner). The Molecule instance is another
     # container; probe from the runner via delegate_to: localhost (host.docker.internal is unreliable in CI).
-    - name: Set Molecule verify HTTP port (must match converge gitlab__port_web_http)
+    # Must match molecule/default/converge.yml (external_url uses hostname + client port).
+    - name: Set Molecule verify HTTP target (Host header required for GitLab nginx vhost)
       ansible.builtin.set_fact:
         gitlab_molecule_http_port: 8080
+        gitlab_molecule_hostname: gitlab.local
 
     - name: Check if GitLab container is running
       community.docker.docker_container_info:
@@ -39,9 +41,11 @@
 
     - name: Wait for GitLab to respond (basic connectivity)
       ansible.builtin.uri:
-        url: "http://127.0.0.1:{{ gitlab_molecule_http_port }}"
+        url: "http://127.0.0.1:{{ gitlab_molecule_http_port }}/"
         status_code: [200, 302, 401, 403]
         return_content: false
+        headers:
+          Host: "{{ gitlab_molecule_hostname }}:{{ gitlab_molecule_http_port }}"
       register: web_check_basic
       retries: 60
       delay: 10
@@ -56,6 +60,8 @@
         url: "http://127.0.0.1:{{ gitlab_molecule_http_port }}/-/health"
         return_content: true
         status_code: [200]
+        headers:
+          Host: "{{ gitlab_molecule_hostname }}:{{ gitlab_molecule_http_port }}"
       register: web_check
       retries: 50
       delay: 15
