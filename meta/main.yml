@@ -5,7 +5,7 @@ galaxy_info:
   author: bsmeding
   description: Manage and run the gitlab ce docker container with Postgres container as backend.
   license: MIT
-  company: b@rtsmeding.nl
+  company: "b@rtsmeding IT"
   min_ansible_version: '2.11'
   platforms:
     - name: Ubuntu
