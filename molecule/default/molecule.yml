@@ -21,9 +21,6 @@ platforms:
     # Do not publish host ports here: converge runs GitLab on the same Docker host
     # (docker.sock) and maps e.g. 8080:80; an extra 8080:80 on the instance would
     # conflict with that bind.
-    # Allow verify playbook to reach host-published ports (GitLab) from inside the instance.
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     environment:
       DOCKER_HOST: unix:///var/run/docker.sock
     capabilities:
