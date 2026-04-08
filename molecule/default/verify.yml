@@ -1,7 +1,10 @@
 ---
+# community.docker for container_info and exec (exec runs where docker.sock is available: instance).
 - name: Verify - GitLab HTTP is running
   hosts: all
   become: false
+  collections:
+    - community.docker
   vars:
     ansible_python_interpreter: auto_silent
   tasks:
@@ -13,8 +16,8 @@
     # include_vars loads role defaults (e.g. gitlab__port_web_http 9081); converge uses 8080.
     # Published ports bind on the Docker daemon host (runner). The Molecule instance is another
     # container; probe from the runner via delegate_to: localhost (host.docker.internal is unreliable in CI).
-    # Must match molecule/default/converge.yml (external_url uses hostname + client port).
-    - name: Set Molecule verify HTTP target (Host header required for GitLab nginx vhost)
+    # Port for wait_for on runner (published bind). Hostname for nginx vhost inside GitLab (converge).
+    - name: Set Molecule verify facts (match molecule/default/converge.yml)
       ansible.builtin.set_fact:
         gitlab_molecule_http_port: 8080
         gitlab_molecule_hostname: gitlab.local
@@ -39,39 +42,33 @@
       connection: local
       # Max wait: 10 minutes, but completes as soon as port is open
 
-    - name: Wait for GitLab to respond (basic connectivity)
-      ansible.builtin.uri:
-        url: "http://127.0.0.1:{{ gitlab_molecule_http_port }}/"
-        status_code: [200, 302, 401, 403]
-        return_content: false
-        headers:
-          Host: "{{ gitlab_molecule_hostname }}:{{ gitlab_molecule_http_port }}"
-      register: web_check_basic
-      retries: 60
-      delay: 10
-      until: web_check_basic.status in [200, 302, 401, 403]
-      failed_when: false
-      delegate_to: localhost
-      connection: local
-      # Max wait: 10 minutes (60 × 10s), but completes as soon as GitLab responds
+    # Do not use ansible.builtin.uri from the runner: GitLab redirects/canonical URLs use
+    # gitlab.local, which is not resolvable on GHA, and urllib may still hit DNS (-3) on some stacks.
 
-    - name: Wait until GitLab healthcheck returns 200 OK
-      ansible.builtin.uri:
-        url: "http://127.0.0.1:{{ gitlab_molecule_http_port }}/-/health"
-        return_content: true
-        status_code: [200]
-        headers:
-          Host: "{{ gitlab_molecule_hostname }}:{{ gitlab_molecule_http_port }}"
-      register: web_check
+    # Monitoring URLs (/-/health, /-/readiness) are IP-allowlisted to loopback inside GitLab.
+    # Traffic from the runner via published ports appears as the Docker bridge IP, so HTTP probes
+    # from localhost get 404; curl from inside the container uses 127.0.0.1 and matches the allowlist.
+    - name: Wait until GitLab readiness returns OK (exec inside container)
+      community.docker.docker_container_exec:
+        container: "{{ gitlab__name }}"
+        env:
+          PATH: "/opt/gitlab/embedded/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+        argv:
+          - curl
+          - -sfS
+          - -o
+          - /dev/null
+          - -H
+          - "Host: {{ gitlab_molecule_hostname }}"
+          - "http://127.0.0.1/-/readiness"
+      register: gitlab_readiness_exec
       retries: 50
       delay: 15
-      until: web_check.status == 200
-      failed_when: web_check is failed or web_check.status != 200
-      delegate_to: localhost
-      connection: local
-      # Max wait: 12.5 minutes (50 × 15s), but completes as soon as healthcheck passes
+      until: gitlab_readiness_exec.rc == 0
+      failed_when: gitlab_readiness_exec.rc != 0
+      # Max wait: 12.5 minutes (50 × 15s), but completes as soon as readiness passes
       # Typical: 6-7 minutes on powerful machines, 8-10 minutes on CI
 
-    - name: Debug response content
+    - name: Debug readiness probe result
       ansible.builtin.debug:
-        var: web_check.content
+        var: gitlab_readiness_exec
