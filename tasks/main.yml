@@ -121,6 +121,7 @@
     image: "{{ gitlab__image }}"
     hostname: "{{ gitlab__hostname | default(omit) }}"
     state: "{{ gitlab__container_state }}"
+    healthy_wait_timeout: "{{ gitlab__container_healthcheck_timeout }}"
     restart_policy: always
     stop_timeout: "{{ gitlab__container_stop_timeout }}"
     network_mode: host
@@ -138,6 +139,7 @@
     image: "{{ gitlab__image }}"
     hostname: "{{ gitlab__hostname | default(omit) }}"
     state: "{{ gitlab__container_state }}"
+    healthy_wait_timeout: "{{ gitlab__container_healthcheck_timeout }}"
     restart_policy: always
     stop_timeout: "{{ gitlab__container_stop_timeout }}"
     networks: "{{ gitlab__container_networks }}"
@@ -158,7 +160,9 @@
     owner: "{{ item.owner | default(docker_uid) | default('root') }}"
     group: "{{ item.group | default(docker_gid) | default('root') }}"
   with_items: "{{ gitlab__directories }}"
-  when: gitlab__container_state == 'started'
+  when: >
+    gitlab__container_state == 'started' or
+    gitlab__container_state == 'healthy'
   register: gitlab_dir_fix
   # Best-effort permission alignment after the container starts; must not break idempotence.
   changed_when: false
